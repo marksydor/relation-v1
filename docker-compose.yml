@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=relation
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  backend:
+    container_name: backend
+    image: mhart/alpine-node:16
+    working_dir: "/home/node/backend"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+    volumes:
+      - ./backend:/home/node/backend
+    env_file:
+      - ./backend/.env
+    command: sh -c "npm install && npm run start:dev"
+
+  frontend:
+    container_name: frontend
+    image: mhart/alpine-node:16
+    working_dir: "/home/node/frontend"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/home/node/frontend
+    command: sh -c "npm install && npm start"
